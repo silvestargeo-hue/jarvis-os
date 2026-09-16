@@ -1,0 +1,41 @@
+# JARVIS repo — only the builds/ trees are tracked; everything else stays out.
+
+/*
+!/builds/
+!/README.md
+!/.gitignore
+!/.github/
+
+# ── secrets (never commit) ─────────────────────────────
+builds/jarvis-chat/config.local.js
+builds/jarvis-os/.env
+builds/jarvis-os/.env*.local
+builds/jarvis-mobile/.keystore/
+*.keystore
+*.jks
+*.b64
+
+# ── heavy / generated output ───────────────────────────
+builds/jarvis-os/node_modules/
+builds/jarvis-os/.next/
+builds/jarvis-os/out/
+builds/jarvis-os/.vercel/
+builds/jarvis-os/convex/_generated/
+builds/jarvis-os/electron/node_modules/
+builds/jarvis-os/electron/dist/
+builds/jarvis-os/tsconfig.tsbuildinfo
+
+builds/jarvis-mobile/node_modules/
+builds/jarvis-mobile/dist/
+builds/jarvis-mobile/android/.gradle/
+builds/jarvis-mobile/android/build/
+builds/jarvis-mobile/android/app/build/
+builds/jarvis-mobile/android/local.properties
+builds/jarvis-mobile/android/.idea/
+builds/jarvis-mobile/android/capacitor-cordova-android-plugins/
+
+builds/*/node_modules/
+
+# ── OS noise ───────────────────────────────────────────
+.DS_Store
+Thumbs.db

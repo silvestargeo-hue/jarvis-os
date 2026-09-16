@@ -20,23 +20,25 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
+        working-directory: builds/jarvis-os
       - run: pnpm exec next build
+        working-directory: builds/jarvis-os
         env:
           JARVIS_STANDALONE: "1"
       - run: npm install --no-fund --no-audit
-        working-directory: electron
+        working-directory: builds/jarvis-os/electron
       - name: Build DMG (arm64+x64) + zip, publish to GitHub Releases
         run: npx electron-builder --mac dmg zip --x64 --arm64 --publish onTagOrDraft
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: electron
+        working-directory: builds/jarvis-os/electron
       - uses: actions/upload-artifact@v4
         with:
           name: jarvis-os-macos
           path: |
-            electron/dist/*.dmg
-            electron/dist/*.zip
-            electron/dist/latest-mac.yml
+            builds/jarvis-os/electron/dist/*.dmg
+            builds/jarvis-os/electron/dist/*.zip
+            builds/jarvis-os/electron/dist/latest-mac.yml
 
   win-portable:
     runs-on: windows-latest
@@ -47,22 +49,24 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
+        working-directory: builds/jarvis-os
       - run: pnpm exec next build
+        working-directory: builds/jarvis-os
         env:
           JARVIS_STANDALONE: "1"
       - run: npm install --no-fund --no-audit
-        working-directory: electron
+        working-directory: builds/jarvis-os/electron
       - name: Build NSIS + portable, publish to GitHub Releases
         run: npx electron-builder --win nsis portable --publish onTagOrDraft
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: electron
+        working-directory: builds/jarvis-os/electron
       - uses: actions/upload-artifact@v4
         with:
           name: jarvis-os-windows
           path: |
-            electron/dist/*.exe
-            electron/dist/latest.yml
+            builds/jarvis-os/electron/dist/*.exe
+            builds/jarvis-os/electron/dist/latest.yml
 
   android-apk:
     runs-on: ubuntu-latest

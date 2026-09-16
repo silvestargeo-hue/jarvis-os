@@ -6,6 +6,10 @@ on:
   pull_request:
   workflow_dispatch:
 
+defaults:
+  run:
+    working-directory: builds/jarvis-os
+
 jobs:
   verify:
     name: Typecheck · Test · Build
@@ -26,21 +30,25 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Typecheck
-        run: node node_modules/typescript/bin/tsc --noEmit
+        run: pnpm exec tsc --noEmit
 
       - name: Unit tests (crypto, chunker)
-        run: npx vitest run tests/
+        run: pnpm exec vitest run tests/
 
       - name: Build (backend URL stubbed — pages gate themselves)
         run: |
           cp .env.example .env.local 2>/dev/null || true
-          npx next build
+          pnpm exec next build
         env:
           NEXT_PUBLIC_CONVEX_URL: https://ci-stub.convex.cloud
 
-      - name: Backend probe (optional; needs CONVEX_DEPLOY_KEY secret)
-        if: ${{ secrets.CONVEX_DEPLOY_KEY != '' }}
-        run: node scripts/e2e-probe.mjs ${{ secrets.CONVEX_PROBE_URL }}
+      - name: Backend probe (optional; skipped without CONVEX_DEPLOY_KEY)
+        run: |
+          if [ -z "$CONVEX_DEPLOY_KEY" ]; then echo "skip: CONVEX_DEPLOY_KEY not set"; exit 0; fi
+          node scripts/e2e-probe.mjs "$CONVEX_PROBE_URL"
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+          CONVEX_PROBE_URL: ${{ secrets.CONVEX_PROBE_URL }}
         continue-on-error: true
 
   deploy:
@@ -63,18 +71,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # NOTE: the `secrets` context is not available inside `if:` conditions on
+      # GitHub Actions — guard at runtime in the shell instead.
       - name: Deploy Convex functions
-        if: ${{ secrets.CONVEX_DEPLOY_KEY != '' }}
-        run: npx convex deploy --preview-name production
+        run: |
+          if [ -z "$CONVEX_DEPLOY_KEY" ]; then echo "skip: CONVEX_DEPLOY_KEY not set"; exit 0; fi
+          npx convex deploy --preview-name production
         env:
           CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
 
       - name: Deploy to Vercel (pull-through CLI)
-        if: ${{ secrets.VERCEL_TOKEN != '' }}
         run: |
-          npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
-          npx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
-          npx vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+          if [ -z "$VERCEL_TOKEN" ]; then echo "skip: VERCEL_TOKEN not set"; exit 0; fi
+          npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          npx vercel build --prod --token="$VERCEL_TOKEN"
+          npx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
         env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

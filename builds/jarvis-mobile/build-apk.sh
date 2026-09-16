@@ -42,6 +42,13 @@ fi
 echo "── [3/5] Gradle assembleRelease (APK) ──────────────"
 cd android
 echo "sdk.dir=$SDK" > local.properties
+# aarch64 hosts: gradle's Maven aapt2 binary is x86_64-only, so point gradle
+# at the local aarch64 build when available (CI/x86_64 needs no override).
+AAPT2_LOCAL="$HOME/tools/sdk-tools-aarch64/android-sdk/build-tools/37.0.0/aapt2"
+if [ "$(uname -m)" = "aarch64" ] && [ -x "$AAPT2_LOCAL" ]; then
+  echo "android.aapt2FromMavenOverride=$AAPT2_LOCAL" >> gradle.properties
+  echo "aapt2 override (aarch64): $AAPT2_LOCAL"
+fi
 chmod +x gradlew
 ./gradlew assembleRelease --no-daemon -q
 

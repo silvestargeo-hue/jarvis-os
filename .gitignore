@@ -20,7 +20,7 @@ builds/jarvis-os/node_modules/
 builds/jarvis-os/.next/
 builds/jarvis-os/out/
 builds/jarvis-os/.vercel/
-builds/jarvis-os/convex/_generated/
+!builds/jarvis-os/convex/_generated/
 builds/jarvis-os/electron/node_modules/
 builds/jarvis-os/electron/dist/
 builds/jarvis-os/tsconfig.tsbuildinfo

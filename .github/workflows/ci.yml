@@ -30,9 +30,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Generate Convex client (convex/_generated is gitignored)
-        run: pnpm exec convex codegen
-
       - name: Typecheck
         run: pnpm exec tsc --noEmit
 
@@ -88,7 +85,7 @@ jobs:
       - name: Deploy to Vercel (pull-through CLI)
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then echo "skip: VERCEL_TOKEN not set"; exit 0; fi
-          npx vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+          npx vercel pull --yes --environment=production --project=jarvis-os --token="$VERCEL_TOKEN"
           npx vercel build --prod --token="$VERCEL_TOKEN"
           npx vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
         env:

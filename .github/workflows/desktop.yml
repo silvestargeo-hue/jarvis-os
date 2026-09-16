@@ -21,9 +21,6 @@ jobs:
         with: { node-version: 22, cache: pnpm, cache-dependency-path: builds/jarvis-os/pnpm-lock.yaml }
       - run: pnpm install --frozen-lockfile
         working-directory: builds/jarvis-os
-      - name: Generate Convex client (convex/_generated is gitignored)
-        run: pnpm exec convex codegen
-        working-directory: builds/jarvis-os
       - run: pnpm exec next build
         working-directory: builds/jarvis-os
         env:
@@ -53,9 +50,6 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: pnpm, cache-dependency-path: builds/jarvis-os/pnpm-lock.yaml }
       - run: pnpm install --frozen-lockfile
-        working-directory: builds/jarvis-os
-      - name: Generate Convex client (convex/_generated is gitignored)
-        run: pnpm exec convex codegen
         working-directory: builds/jarvis-os
       - run: pnpm exec next build
         working-directory: builds/jarvis-os
@@ -101,7 +95,7 @@ jobs:
           echo "version: $V → versionCode $CODE"
         working-directory: builds/jarvis-mobile
       - run: |
-          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
           ./gradlew assembleRelease --no-daemon
         working-directory: builds/jarvis-mobile/android
       - name: Sign APK

@@ -21,10 +21,14 @@ jobs:
         with: { node-version: 22, cache: pnpm, cache-dependency-path: builds/jarvis-os/pnpm-lock.yaml }
       - run: pnpm install --frozen-lockfile
         working-directory: builds/jarvis-os
+      - name: Generate Convex client (convex/_generated is gitignored)
+        run: pnpm exec convex codegen
+        working-directory: builds/jarvis-os
       - run: pnpm exec next build
         working-directory: builds/jarvis-os
         env:
           JARVIS_STANDALONE: "1"
+          NEXT_PUBLIC_CONVEX_URL: ${{ secrets.NEXT_PUBLIC_CONVEX_URL }}
       - run: npm install --no-fund --no-audit
         working-directory: builds/jarvis-os/electron
       - name: Build DMG (arm64+x64) + zip, publish to GitHub Releases
@@ -50,10 +54,14 @@ jobs:
         with: { node-version: 22, cache: pnpm, cache-dependency-path: builds/jarvis-os/pnpm-lock.yaml }
       - run: pnpm install --frozen-lockfile
         working-directory: builds/jarvis-os
+      - name: Generate Convex client (convex/_generated is gitignored)
+        run: pnpm exec convex codegen
+        working-directory: builds/jarvis-os
       - run: pnpm exec next build
         working-directory: builds/jarvis-os
         env:
           JARVIS_STANDALONE: "1"
+          NEXT_PUBLIC_CONVEX_URL: ${{ secrets.NEXT_PUBLIC_CONVEX_URL }}
       - run: npm install --no-fund --no-audit
         working-directory: builds/jarvis-os/electron
       - name: Build NSIS + portable, publish to GitHub Releases
@@ -74,7 +82,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with: { distribution: temurin, java-version: 17 }
-      - uses: android-actions/setup-android@v3
+      # No android-actions/setup-android: it fails on current runners and is
+      # redundant — ubuntu images ship a complete Android SDK at ANDROID_HOME.
       - uses: actions/setup-node@v4
         with: { node-version: 22 }
       - run: npm install --no-fund --no-audit
@@ -101,7 +110,8 @@ jobs:
           KS_PASS: ${{ secrets.JARVIS_KEYSTORE_PASS }}
         run: |
           echo "$KS_B64" | base64 -d > .keystore/jarvis.keystore
-          BUILD_TOOLS=$ANDROID_HOME/build-tools/34.0.0
+          BUILD_TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          echo "using build-tools: $BUILD_TOOLS"
           $BUILD_TOOLS/zipalign -f -p 4 android/app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
           $BUILD_TOOLS/apksigner sign --ks .keystore/jarvis.keystore --ks-pass pass:$KS_PASS --out "JARVIS-OS-${GITHUB_REF_NAME#v}.apk" aligned.apk
         working-directory: builds/jarvis-mobile

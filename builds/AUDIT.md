@@ -82,7 +82,7 @@
 | AI engines | OpenRouter · Puter · Pollinations · Groq · WebLLM (browser) | ✅ 5 tiers, auto-fallback chain |
 | Desktop | Electron 33 — spawns the standalone Next server as child process on `127.0.0.1:43117`, window points at it | ✅ standalone 109MB verified |
 | Mobile | Capacitor 6 shell → prod URL, `INTERNET` only | ✅ signed APK built |
-| CI | `builds/jarvis-os/.github/workflows/desktop.yml` — DMG+zip (macos-14), NSIS/portable (windows-latest), signed APK (ubuntu) on tags; desktop jobs **publish installers + `latest*.yml` update feeds to GitHub Releases** (`silvestargeo-hue/jarvis-os`) | ✅ workflow committed; create repo, push, add `JARVIS_KEYSTORE_B64` + `JARVIS_KEYSTORE_PASS` secrets |
+| CI | `.github/workflows/desktop.yml` (repo root, `silvestargeo-hue/jarvis-os` — **repo live, main pushed**) — DMG+zip (macos-14), NSIS/portable (windows-latest), signed APK (ubuntu) on tags; desktop jobs **publish installers + `latest*.yml` update feeds to GitHub Releases**; secrets configured: `JARVIS_KEYSTORE_B64`, `JARVIS_KEYSTORE_PASS`, `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` | ✅ v1.0.1 tagged → release build running |
 | Toolchain (this sandbox) | JDK 17.0.20 + cmdline-tools 12 + platform 34 + aarch64 build-tools 37 (aapt2 override) — reproducible via `builds/jarvis-mobile/build-apk.sh` | ✅ |
 
 ---
@@ -104,11 +104,11 @@
 ## 6. WHAT REMAINS (roadmap)
 
 1. **Rotate the OpenRouter key** (do this first) — openrouter.ai/keys
-2. **Rotate the GitHub PAT** found in shell history — github.com/settings/tokens
-3. Create repo `silvestargeo-hue/jarvis-os`, push the project, add CI secrets `JARVIS_KEYSTORE_B64` (base64 of keystore: `base64 -w0 .keystore/jarvis.keystore`) + `JARVIS_KEYSTORE_PASS`
-4. Push a tag (`git tag v1.0.1 && git push --tags`) → CI emits **real .dmg + .exe** + signed APK **and publishes them to GitHub Releases** (the auto-update feed)
-5. Play Store listing — **AAB built**: `dist/JARVIS-OS-v1.0.0.aab` (2.7 MB, signed with the release keystore, jarsigner-verified); rebuild anytime via `./build-apk.sh` (now emits APK + AAB). Secrets guide: `builds/jarvis-mobile/CI-SECRETS.md`
-6. **Deploy the library upgrades:** ✅ code live on prod Vercel (health 200) · ✅ schema+functions validated on Convex preview deployment `library-upgrades` (ardent-cardinal-12) · ⏳ **ONE STEP LEFT: promote Convex preview → production** (dashboard.convex.com → ardent-cardinal-12 → Deployments → Promote, or run `npx convex deploy` with a prod-scoped `CONVEX_DEPLOY_KEY`) — tags/folders/bulk/curation functions activate on promotion
+2. **Rotate the GitHub PAT** found in shell history — github.com/settings/tokens (locally scrubbed from the history file at ship time; the token itself should still be rotated)
+3. ~~Create repo `silvestargeo-hue/jarvis-os`, push the project, add CI secrets~~ → **DONE** — repo pushed (main `5a6aea5`), all 5 secrets set via the Actions API
+4. ~~Push a tag~~ → **DONE** — `v1.0.1` tagged; CI emits **real .dmg + .exe** + signed APK and publishes them to GitHub Releases (the auto-update feed)
+5. Play Store listing — **AAB built**: `dist/JARVIS-OS-v1.0.0.aab` (2.7 MB, signed with the release keystore, jarsigner-verified); rebuild anytime via `./build-apk.sh` (now emits APK + AAB). Secrets guide: `builds/jarvis-mobile/CI-SECRETS.md` (keystore pass redacted from docs)
+6. **Deploy the library upgrades:** ✅ code live on prod Vercel (health 200) · ✅ schema+functions validated on Convex preview deployment `library-upgrades` (ardent-cardinal-12) · ⏳ **ONE STEP LEFT: promote Convex preview → production** (dashboard.convex.com → ardent-cardinal-12 → Deployments → Promote, or create a **Production-scoped** deploy key and run `npx convex deploy` — guide: `builds/jarvis-os/CONVEX-PROD-KEY.md`)
 7. Optional: i18n, multi-image vision, per-session engine override
 
 **Done this session (post-audit):** ✅ electron-updater wired into `electron/main.js` — packaged desktop builds check GitHub Releases 15s after launch + hourly, prompt before download, apply on quit/restart; dev runs skip. ✅ `publish: github silvestargeo-hue/jarvis-os` in electron-builder config. ✅ CI desktop jobs now `--publish onTagOrDraft` with `GH_TOKEN` and upload `latest-mac.yml` / `latest.yml` feed files. ✅ mac target switched `zip,dir` → `dmg,zip`. ✅ electron-builder dry-run (`--dir`) passed: config parses, all extraResources resolve, packaging completes. ✅ **Play Store AAB built & signed** (`dist/JARVIS-OS-v1.0.0.aab`, 2.7 MB, checksum added). ✅ `build-apk.sh` upgraded to reproducibly build + sign both APK and AAB. ✅ CI secrets guide written (`builds/jarvis-mobile/CI-SECRETS.md`). All verified: `node --check` on main.js, dependency resolvable, YAML lint clean, production health checks 200.

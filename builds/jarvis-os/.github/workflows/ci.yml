@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: Typecheck · Test · Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: node node_modules/typescript/bin/tsc --noEmit
+
+      - name: Unit tests (crypto, chunker)
+        run: npx vitest run tests/
+
+      - name: Build (backend URL stubbed — pages gate themselves)
+        run: |
+          cp .env.example .env.local 2>/dev/null || true
+          npx next build
+        env:
+          NEXT_PUBLIC_CONVEX_URL: https://ci-stub.convex.cloud
+
+      - name: Backend probe (optional; needs CONVEX_DEPLOY_KEY secret)
+        if: ${{ secrets.CONVEX_DEPLOY_KEY != '' }}
+        run: node scripts/e2e-probe.mjs ${{ secrets.CONVEX_PROBE_URL }}
+        continue-on-error: true
+
+  deploy:
+    name: Deploy (Convex + Vercel)
+    needs: verify
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Deploy Convex functions
+        if: ${{ secrets.CONVEX_DEPLOY_KEY != '' }}
+        run: npx convex deploy --preview-name production
+        env:
+          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_DEPLOY_KEY }}
+
+      - name: Deploy to Vercel (pull-through CLI)
+        if: ${{ secrets.VERCEL_TOKEN != '' }}
+        run: |
+          npx vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          npx vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+          npx vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}

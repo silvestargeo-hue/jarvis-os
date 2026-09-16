@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --hud-accent: 34 211 238;
+  --hud-panel-opacity: 0.72;
+}
+
+html,
+body {
+  background-color: #020617;
+  /* Subtle starfield / grid backdrop */
+  background-image:
+    radial-gradient(ellipse at 20% -10%, rgba(34, 211, 238, 0.12), transparent 50%),
+    radial-gradient(ellipse at 80% 110%, rgba(59, 130, 246, 0.1), transparent 50%),
+    linear-gradient(rgba(34, 211, 238, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.04) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 42px 42px, 42px 42px;
+}
+
+@layer components {
+  .hud-panel {
+    @apply rounded-xl border backdrop-blur-md;
+    border-color: rgb(var(--hud-accent) / 0.22);
+    background: rgba(8, 20, 36, var(--hud-panel-opacity));
+    box-shadow:
+      0 0 0 1px rgb(var(--hud-accent) / 0.12),
+      0 0 24px rgb(var(--hud-accent) / 0.1),
+      inset 0 0 32px rgb(var(--hud-accent) / 0.05);
+  }
+
+  /* Keyboard-cursor ring on the focused library card */
+  .cursor-ring {
+    outline: 2px solid rgb(var(--hud-accent) / 0.65);
+    outline-offset: 2px;
+    border-radius: 0.5rem;
+  }
+
+  .hud-corner {
+    position: relative;
+  }
+  .hud-corner::before,
+  .hud-corner::after {
+    content: "";
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-color: rgb(var(--hud-accent) / 0.8);
+    border-style: solid;
+  }
+  .hud-corner::before {
+    top: -1px;
+    left: -1px;
+    border-width: 2px 0 0 2px;
+  }
+  .hud-corner::after {
+    bottom: -1px;
+    right: -1px;
+    border-width: 0 2px 2px 0;
+  }
+
+  .hud-label {
+    @apply font-mono text-[10px] uppercase tracking-[0.25em] text-cyan-500/80;
+  }
+
+  .hud-btn {
+    @apply inline-flex items-center gap-2 rounded-lg border border-cyan-400/30 bg-cyan-400/5 px-4 py-2 font-mono text-xs uppercase tracking-widest text-cyan-200 transition hover:bg-cyan-400/15 hover:shadow-hud focus:outline-none focus:ring-1 focus:ring-cyan-400/50;
+  }
+}
+
+/* Animated scan line overlay (used on landing + lockscreen) */
+.scan-line {
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgb(var(--hud-accent) / 0.35), transparent);
+  animation: scan-line 6s linear infinite;
+  pointer-events: none;
+  z-index: 50;
+}
+
+::selection {
+  background: rgb(var(--hud-accent) / 0.3);
+}
+
+/* ── OS FX layer ─────────────────────────────────────────────────────── */
+
+/* Typing caret for the AI terminal (smooth blink instead of hard blink) */
+@keyframes caret-blink {
+  0%, 45% { opacity: 1; }
+  50%, 95% { opacity: 0; }
+}
+.typing-caret::after {
+  content: "▊";
+  margin-left: 2px;
+  color: rgb(var(--hud-accent) / 0.9);
+  animation: caret-blink 0.9s steps(1) infinite;
+}
+
+/* Soft entrance for cards/panels as they mount */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.rise-in {
+  animation: rise-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Focus ring that sweeps the border like a radar pass */
+@keyframes radar-sweep {
+  0% { box-shadow: 0 0 0 0 rgb(var(--hud-accent) / 0.45); }
+  70% { box-shadow: 0 0 0 10px rgb(var(--hud-accent) / 0); }
+  100% { box-shadow: 0 0 0 0 rgb(var(--hud-accent) / 0); }
+}
+.radar-sweep {
+  animation: radar-sweep 1.4s ease-out infinite;
+}
+
+/* Page-load cinematic: 300ms iris-in on the whole app */
+@keyframes iris-in {
+  from { clip-path: circle(0% at 50% 50%); opacity: 0.4; }
+  to { clip-path: circle(140% at 50% 50%); opacity: 1; }
+}
+.iris-in {
+  animation: iris-in 0.6s ease-out both;
+}
+
+/* Glitch-flicker for critical labels */
+@keyframes glitch-flicker {
+  0%, 91%, 94%, 98%, 100% { opacity: 1; transform: translateX(0); }
+  92% { opacity: 0.6; transform: translateX(-1.5px); }
+  96% { opacity: 0.8; transform: translateX(1.5px); }
+}
+.glitch-flicker {
+  animation: glitch-flicker 5s steps(1) infinite;
+}

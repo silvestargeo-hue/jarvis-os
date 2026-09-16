@@ -1,0 +1,6 @@
+electron/
+.next/
+node_modules/
+tests/
+*.tsbuildinfo
+*.log

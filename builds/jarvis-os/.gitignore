@@ -1,0 +1,14 @@
+node_modules
+.next
+out
+.env
+.env*.local
+
+convex/_generated
+
+# OS
+.DS_Store
+Thumbs.db
+
+# WebLLM model cache lives in IndexedDB/CacheStorage, nothing to ignore on disk.
+.vercel

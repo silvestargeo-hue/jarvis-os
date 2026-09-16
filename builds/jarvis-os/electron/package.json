@@ -1,0 +1,82 @@
+{
+  "name": "jarvis-os-desktop",
+  "productName": "JARVIS OS",
+  "version": "1.0.0",
+  "description": "JARVIS OS — futuristic OS-style platform: AI terminal, E2EE comms, document library. Fully self-contained desktop build.",
+  "main": "main.js",
+  "author": "JARVIS OS",
+  "license": "MIT",
+  "scripts": {
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8",
+    "electron-updater": "^6.8.9"
+  },
+  "build": {
+    "appId": "os.jarvis.desktop",
+    "productName": "JARVIS OS",
+    "directories": {
+      "output": "dist"
+    },
+    "electronDownload": {
+      "mirror": "https://github.com/electron/electron/releases/download/"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "silvestargeo-hue",
+      "repo": "jarvis-os"
+    },
+    "files": [
+      "main.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../.next/standalone",
+        "to": "jarvis-server",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../.next/static",
+        "to": "jarvis-server/.next/static",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "../public",
+        "to": "jarvis-server/public",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "deleteAppDataOnUninstall": false
+    },    "mac": {
+      "target": ["dmg", "zip"],
+      "icon": "build/icon.png",
+      "identity": null
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "icon": "build/icon.png",
+      "category": "Utility"
+    }
+  }
+}

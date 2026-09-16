@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>JARVIS CHAT // Puter.js</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>◈</text></svg>" />
+<style>
+  :root {
+    --bg: #020617;
+    --panel: rgba(8, 20, 38, 0.72);
+    --line: rgba(34, 211, 238, 0.22);
+    --cyan: #22d3ee;
+    --cyan-dim: rgba(34, 211, 238, 0.65);
+    --text: #e0f7ff;
+    --muted: #7da9bd;
+    --user-bubble: rgba(34, 211, 238, 0.12);
+    --ai-bubble: rgba(15, 32, 56, 0.85);
+    --err: #fb7185;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background:
+      radial-gradient(1100px 500px at 70% -10%, rgba(34, 211, 238, 0.08), transparent 60%),
+      radial-gradient(900px 420px at 10% 110%, rgba(59, 130, 246, 0.07), transparent 60%),
+      var(--bg);
+    color: var(--text);
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  /* HUD dressing */
+  .scan-line {
+    position: fixed; top: 0; left: 0; right: 0; height: 1px; z-index: 50; pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(34,211,238,.5), transparent);
+    animation: scan 7s linear infinite; opacity: .5;
+  }
+  @keyframes scan { 0% { transform: translateY(0); } 100% { transform: translateY(100vh); } }
+  @keyframes flicker { 0%,100% { opacity: 1; } 92% { opacity: 1; } 93% { opacity: .6; } 94% { opacity: 1; } }
+
+  header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+    background: var(--panel); backdrop-filter: blur(8px);
+    animation: flicker 6s infinite;
+    flex-wrap: wrap;
+  }
+  .brand { font-size: 15px; letter-spacing: .35em; color: var(--cyan); text-shadow: 0 0 18px rgba(34,211,238,.6); white-space: nowrap; }
+  .badge {
+    font-size: 10px; letter-spacing: .12em; padding: 3px 8px;
+    border: 1px solid var(--line); border-radius: 4px; color: var(--cyan-dim);
+    white-space: nowrap;
+  }
+  .badge.ok { color: #4ade80; border-color: rgba(74, 222, 128, .35); }
+  button.ok { color: #4ade80; border-color: rgba(74, 222, 128, .35); }
+  .badge.err { color: var(--err); border-color: rgba(251, 113, 133, .35); }
+  header .spacer { flex: 1; }
+  select, input[type="text"], input[type="password"] {
+    background: rgba(2, 10, 24, .8); color: var(--text);
+    border: 1px solid var(--line); border-radius: 6px;
+    font: inherit; font-size: 12px; padding: 7px 9px; outline: none;
+  }
+  select:focus, input:focus { border-color: var(--cyan); box-shadow: 0 0 0 1px rgba(34,211,238,.25); }
+  button {
+    font: inherit; font-size: 12px; cursor: pointer;
+    background: rgba(34, 211, 238, .1); color: var(--cyan);
+    border: 1px solid var(--line); border-radius: 6px; padding: 7px 12px;
+    transition: background .15s, box-shadow .15s;
+  }
+  button:hover { background: rgba(34, 211, 238, .18); box-shadow: 0 0 14px rgba(34,211,238,.25); }
+  button:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
+  button.stop { color: var(--err); border-color: rgba(251,113,133,.4); background: rgba(251,113,133,.08); }
+
+  #log { flex: 1; overflow-y: auto; padding: 22px 18px 10px; scroll-behavior: smooth; }
+  #log::-webkit-scrollbar { width: 8px; }
+  #log::-webkit-scrollbar-thumb { background: rgba(34,211,238,.2); border-radius: 4px; }
+
+  .row { display: flex; margin-bottom: 14px; animation: rise .25s ease; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .row.user { justify-content: flex-end; }
+  .bubble {
+    max-width: min(760px, 86%); padding: 12px 14px; border-radius: 10px;
+    font-size: 13.5px; line-height: 1.65; white-space: pre-wrap; word-break: break-word;
+    border: 1px solid var(--line);
+  }
+  .row.user .bubble { background: var(--user-bubble); border-color: rgba(34,211,238,.35); }
+  .row.ai .bubble { background: var(--ai-bubble); }
+  .meta { font-size: 10px; letter-spacing: .1em; color: var(--muted); margin-bottom: 5px; text-transform: uppercase; }
+  .caret { display: inline-block; width: 8px; height: 14px; background: var(--cyan); vertical-align: -2px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .bubble code { background: rgba(34,211,238,.1); padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+  .bubble pre { background: rgba(2,10,24,.9); border: 1px solid var(--line); border-radius: 8px; padding: 10px; overflow-x: auto; margin: 8px 0; }
+  .bubble pre code { background: none; padding: 0; }
+  .err-text { color: var(--err); }
+
+  form {
+    display: flex; gap: 10px; padding: 14px 18px;
+    border-top: 1px solid var(--line); background: var(--panel); backdrop-filter: blur(8px);
+  }
+  #btn-mic, .attach {
+    background: rgba(34,211,238,.08); border: 1px solid var(--line); border-radius: 8px;
+    color: var(--cyan); cursor: pointer; font-size: 15px; padding: 0 11px; line-height: 38px;
+    user-select: none;
+  }
+  #btn-mic:hover, .attach:hover { background: rgba(34,211,238,.16); }
+  #input {
+    flex: 1; resize: none; max-height: 160px;
+    background: rgba(2, 10, 24, .8); color: var(--text);
+    border: 1px solid var(--line); border-radius: 8px;
+    font: inherit; font-size: 13.5px; padding: 11px 12px; outline: none;
+  }
+  #input:focus { border-color: var(--cyan); box-shadow: 0 0 0 1px rgba(34,211,238,.25); }
+
+  footer {
+    padding: 6px 18px 10px; text-align: center;
+    font-size: 10.5px; color: var(--muted); letter-spacing: .08em;
+  }
+  footer a { color: var(--cyan-dim); text-decoration: none; border-bottom: 1px dotted var(--cyan-dim); }
+
+  dialog {
+    background: #06121f; color: var(--text); border: 1px solid var(--line);
+    border-radius: 12px; padding: 20px; width: min(460px, 92vw);
+    font-family: inherit;
+  }
+  dialog::backdrop { background: rgba(2, 6, 17, .7); backdrop-filter: blur(2px); }
+  dialog h3 { font-size: 13px; letter-spacing: .2em; color: var(--cyan); margin-bottom: 14px; }
+  dialog label { display: block; font-size: 11px; color: var(--muted); margin: 12px 0 4px; letter-spacing: .08em; }
+  dialog input { width: 100%; }
+  dialog .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
+  .hint { font-size: 11px; color: var(--muted); line-height: 1.6; margin-top: 10px; }
+
+  #boot {
+    position: fixed; inset: 0; z-index: 100; background: var(--bg);
+    display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 14px;
+    transition: opacity .5s; font-size: 12px; color: var(--cyan-dim); letter-spacing: .2em; text-align: center;
+  }
+  #boot.done { opacity: 0; pointer-events: none; }
+  #boot .big { font-size: 34px; letter-spacing: .5em; color: var(--cyan); text-shadow: 0 0 30px rgba(34,211,238,.7); }
+</style>
+</head>
+<body>
+<div class="scan-line" aria-hidden="true"></div>
+<div id="boot">
+  <div class="big">JARVIS</div>
+  <div id="boot-line">INITIALIZING PUTER.JS INTERFACE…</div>
+</div>
+
+<header>
+  <span class="brand">JARVIS // CHAT</span>
+  <span id="engine-badge" class="badge">ENGINE: —</span>
+  <span class="spacer"></span>
+  <select id="engine" title="AI engine">
+    <option value="auto">AUTO (PUTER → OPENROUTER)</option>
+    <option value="puter">PUTER.JS (KEYLESS)</option>
+    <option value="openrouter">OPENROUTER (API KEY)</option>
+  </select>
+  <input id="model" type="text" list="models" placeholder="model id" style="width: 210px" />
+  <datalist id="models">
+    <option value="gpt-5-nano"></option>
+    <option value="gpt-5-mini"></option>
+    <option value="gpt-4.1-nano"></option>
+    <option value="claude-sonnet-5"></option>
+    <option value="gemini-2.5-flash"></option>
+    <option value="deepseek-chat"></option>
+  </datalist>
+  <button id="btn-voice" title="Speak JARVIS answers aloud">🔊 VOICE: OFF</button>
+  <button id="btn-settings" title="API keys & system prompt">⚙ SETTINGS</button>
+  <button id="btn-clear" title="Clear conversation">✕ CLEAR</button>
+</header>
+
+<div id="log"></div>
+
+<form id="composer">
+  <button id="btn-mic" type="button" title="Voice input">🎙</button>
+  <label class="attach" title="Attach image (vision AI)">📎<input id="file-img" type="file" accept="image/*" hidden /></label>
+  <textarea id="input" rows="1" placeholder="Message JARVIS…  (Enter to send, Shift+Enter for newline)"></textarea>
+  <button id="btn-send" type="submit">SEND ▸</button>
+  <button id="btn-stop" type="button" class="stop" hidden>■ STOP</button>
+</form>
+
+<footer>
+  Engine fallback: PUTER (free, keyless, 500+ models) → OPENROUTER (your key) ·
+  <a href="https://developer.puter.com" target="_blank" rel="noopener">Powered by Puter</a>
+</footer>
+
+<dialog id="settings">
+  <h3>SYSTEM CONFIG</h3>
+  <label>OPENROUTER API KEY (optional fallback)</label>
+  <input id="or-key" type="password" placeholder="sk-or-v1-…" autocomplete="off" />
+  <label>SYSTEM PROMPT</label>
+  <input id="sys-prompt" type="text" placeholder="You are JARVIS…" />
+  <div class="hint">
+    Puter.js needs no key and no signup — on first AI call a Puter sign-in popup may appear (free).
+    The OpenRouter key is used automatically if Puter fails. Keys are kept in this browser's localStorage only.
+  </div>
+  <div class="actions">
+    <button id="settings-close" type="button">CLOSE</button>
+    <button id="settings-save" type="button">SAVE</button>
+  </div>
+</dialog>
+
+<!-- Puter.js — keyless AI, storage, auth -->
+<script src="https://js.puter.com/v2/"></script>
+<!-- Local secrets (gitignored). Optional: window.JARVIS_CONFIG = { openrouterKey, ... } -->
+<script src="./config.local.js"></script>
+
+<script>
+"use strict";
+
+// ── Configuration ────────────────────────────────────────────────────────────
+const PUTER_DEFAULT_MODEL = "gpt-5-nano";
+const OPENROUTER_DEFAULT_MODEL = "openai/gpt-4o-mini";
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+const LS = {
+  history: "jarvis.chat.history",
+  engine: "jarvis.chat.engine",
+  puterModel: "jarvis.chat.puterModel",
+  orModel: "jarvis.chat.orModel",
+  orKey: "jarvis.chat.orKey",
+  sys: "jarvis.chat.sysPrompt",
+};
+
+const cfg = (typeof window !== "undefined" && window.JARVIS_CONFIG) || {};
+const DEFAULT_SYSTEM =
+  "You are JARVIS, a witty, precise AI assistant with a futuristic HUD personality. " +
+  "Be concise. Format with markdown when helpful.";
+
+const state = {
+  messages: [],            // {role, content, images?}
+  streaming: false,
+  abort: null,             // {cancelled:boolean}
+  image: null,             // attached image data URL (vision)
+  voiceOut: localStorage.getItem("jarvis.chat.voiceOut") === "1",
+  mic: null,               // active SpeechRecognition
+};
+
+// ── DOM ──────────────────────────────────────────────────────────────────────
+const $ = (id) => document.getElementById(id);
+const logEl = $("log"), inputEl = $("input"), sendBtn = $("btn-send"), stopBtn = $("btn-stop");
+const engineSel = $("engine"), modelEl = $("model"), badge = $("engine-badge");
+
+// ── Settings / keys ──────────────────────────────────────────────────────────
+function openRouterKey() {
+  return localStorage.getItem(LS.orKey) || cfg.openrouterKey || "";
+}
+function currentModel() {
+  return engineSel.value === "openrouter"
+    ? (localStorage.getItem(LS.orModel) || cfg.openrouterModel || OPENROUTER_DEFAULT_MODEL)
+    : (localStorage.getItem(LS.puterModel) || cfg.puterModel || PUTER_DEFAULT_MODEL);
+}
+function systemPrompt() {
+  return localStorage.getItem(LS.sys) || cfg.systemPrompt || DEFAULT_SYSTEM;
+}
+function setBadge(text, cls) {
+  badge.textContent = text;
+  badge.className = "badge" + (cls ? " " + cls : "");
+}
+
+// ── Render helpers ───────────────────────────────────────────────────────────
+function esc(s) {
+  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+function renderMd(s) {
+  // Minimal markdown: fenced code, inline code, bold, headers→bold lines.
+  let html = esc(s);
+  html = html.replace(/```(\w*)\n?([\s\S]*?)(```|$)/g, (_, lang, code) =>
+    `<pre><code>${code.replace(/\n$/, "")}</code></pre>`);
+  html = html.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+  html = html.replace(/\*\*([^*\n]+)\*\*/g, "<strong>$1</strong>");
+  return html;
+}
+function addRow(role, engineLabel) {
+  const row = document.createElement("div");
+  row.className = "row " + (role === "user" ? "user" : "ai");
+  const bubble = document.createElement("div");
+  bubble.className = "bubble";
+  if (role !== "user") {
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    meta.textContent = "◈ JARVIS" + (engineLabel ? " · " + engineLabel : "");
+    row.appendChild(meta);
+  }
+  row.appendChild(bubble);
+  logEl.appendChild(row);
+  logEl.scrollTop = logEl.scrollHeight;
+  return bubble;
+}
+function scrollBottom() { logEl.scrollTop = logEl.scrollHeight; }
+
+// ── Engines ──────────────────────────────────────────────────────────────────
+function extractPuterText(part) {
+  if (!part) return "";
+  if (typeof part === "string") return part;
+  if (typeof part.text === "string") return part.text;
+  const c = part.message?.content ?? part.delta?.content;
+  if (typeof c === "string") return c;
+  if (Array.isArray(c)) return c.map((b) => (typeof b?.text === "string" ? b.text : "")).join("");
+  return "";
+}
+
+async function puterStream(messages, onDelta, abortRef) {
+  if (typeof puter === "undefined" || !puter?.ai?.chat) {
+    throw new Error("puter.js not loaded (offline or blocked)");
+  }
+  const lastUser = [...messages].reverse().find((m) => m.role === "user");
+  const imgs = lastUser && Array.isArray(lastUser.images) ? lastUser.images : [];
+  const resp = imgs.length
+    ? await puter.ai.chat(lastUser.content, imgs, false, { model: currentModel(), stream: true })
+    : await puter.ai.chat(messages, false, { model: currentModel(), stream: true });
+  let full = "";
+  for await (const part of resp) {
+    if (abortRef.cancelled) break;
+    const piece = extractPuterText(part);
+    if (piece) {
+      full += piece;
+      onDelta(full);
+    }
+  }
+  if (!full.trim()) throw new Error("puter: empty completion");
+  return full;
+}
+
+function extractOpenAiText(payload) {
+  return payload?.choices?.[0]?.delta?.content ??
+         payload?.choices?.[0]?.message?.content ?? "";
+}
+
+async function openRouterStream(messages, onDelta, abortRef) {
+  const key = openRouterKey();
+  if (!key) throw new Error("no OpenRouter key configured");
+  const res = await fetch(OPENROUTER_URL, {
+    method: "POST",
+    signal: abortRef.signal,
+    headers: {
+      "Authorization": `Bearer ${key}`,
+      "Content-Type": "application/json",
+      // Attribution headers per OpenRouter docs
+      "HTTP-Referer": window.location.origin,
+      "X-Title": "JARVIS Chat (Puter.js)",
+    },
+    body: JSON.stringify({
+      model: currentModel(),
+      messages: messages.map((m) =>
+        m.role === "user" && Array.isArray(m.images) && m.images.length
+          ? {
+              role: m.role,
+              content: [
+                { type: "text", text: m.content },
+                ...m.images.map((url) => ({ type: "image_url", image_url: { url } })),
+              ],
+            }
+          : m
+      ),
+      temperature: 0.6,
+      max_tokens: 2048,
+      stream: true,
+    }),
+  });
+  if (!res.ok || !res.body) {
+    const body = await res.text().catch(() => "");
+    throw new Error(`openrouter ${res.status}: ${body.slice(0, 160)}`);
+  }
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "", full = "";
+  for (;;) {
+    if (abortRef.cancelled) { try { reader.cancel(); } catch {} break; }
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    const lines = buf.split("\n");
+    buf = lines.pop() ?? "";
+    for (const line of lines) {
+      const t = line.trim();
+      if (!t.startsWith("data:")) continue;
+      const data = t.slice(5).trim();
+      if (!data || data === "[DONE]") continue;
+      try {
+        const piece = extractOpenAiText(JSON.parse(data));
+        if (piece) { full += piece; onDelta(full); }
+      } catch { /* keep-alive */ }
+    }
+  }
+  if (!full.trim()) throw new Error("openrouter: empty completion");
+  return full;
+}
+
+/** AUTO mode: Puter first (keyless), OpenRouter as fallback. */
+async function runChat(messages, onDelta, abortRef) {
+  const mode = engineSel.value;
+  const attempts =
+    mode === "puter" ? [["puter"]] :
+    mode === "openrouter" ? [["openrouter"]] :
+    [["puter", "PUTER"], ["openrouter", "OPENROUTER"]];
+
+  let lastErr = null;
+  for (const [engine, label] of attempts) {
+    if (abortRef.cancelled) throw new Error("stopped");
+    try {
+      const text = engine === "puter"
+        ? await puterStream(messages, onDelta, abortRef)
+        : await openRouterStream(messages, onDelta, abortRef);
+      setBadge(`ENGINE: ${(label || engine).toUpperCase()} ✓`, "ok");
+      return { text, engine: label || engine };
+    } catch (e) {
+      if (abortRef.cancelled || abortRef.signal?.aborted) throw new Error("stopped");
+      lastErr = e;
+      if (attempts.length > 1) setBadge(`ENGINE: ${engine.toUpperCase()} FAILED → FALLBACK…`, "err");
+    }
+  }
+  throw lastErr || new Error("all engines failed");
+}
+
+// ── Conversation flow ────────────────────────────────────────────────────────
+function setStreaming(on) {
+  state.streaming = on;
+  sendBtn.disabled = on;
+  stopBtn.hidden = !on;
+  inputEl.disabled = false;
+}
+
+async function send(text) {
+  if (state.streaming || !text.trim()) return;
+
+  // /image command — keyless AI painting via Puter txt2img
+  if (text.toLowerCase().startsWith("/image ")) {
+    const prompt = text.slice(7).trim();
+    if (!prompt) return;
+    state.messages.push({ role: "user", content: text });
+    addRow("user").textContent = text;
+    const imgBubble = addRow("ai", "PUTER · TXT2IMG");
+    imgBubble.innerHTML = '<span class="caret"></span>';
+    setBadge("PAINTING…");
+    try {
+      const out = await puter.ai.txt2img(prompt);
+      const src = typeof out === "string" ? out : (out && out.src) || "";
+      if (!src) throw new Error("no image returned");
+      const md = `🎨 **Generated image**\n\nPrompt: "${prompt}"\n\n![${prompt}](${src})\n\n[open full size](${src})`;
+      state.messages.push({ role: "assistant", content: md });
+      imgBubble.innerHTML = renderMd(md);
+      saveHistory();
+      setBadge("ENGINE: PUTER ✓", "ok");
+    } catch (e) {
+      imgBubble.innerHTML = `<span class="err-text">✕ image: ${esc(String((e && e.message) || e))}</span>`;
+      setBadge("ENGINE: ERROR", "err");
+    }
+    scrollBottom();
+    return;
+  }
+
+  const withImage = state.image ? { images: [state.image] } : {};
+  state.image = null; // attachment consumed this turn
+  renderImageChip();
+  state.messages.push({ role: "user", content: text, ...withImage });
+  addRow("user").textContent = text;
+  saveHistory();
+  inputEl.value = "";
+  autosize();
+
+  const abortRef = { cancelled: false, signal: null };
+  state.abort = abortRef;
+  setStreaming(true);
+  setBadge("ENGINE: THINKING…");
+
+  const bubble = addRow("ai", engineSel.value === "openrouter" ? "OPENROUTER" : "PUTER");
+  bubble.innerHTML = '<span class="caret"></span>';
+  let full = "";
+  const onDelta = (acc) => {
+    full = acc;
+    bubble.innerHTML = renderMd(acc) + '<span class="caret"></span>';
+    scrollBottom();
+  };
+
+  const wire = [{ role: "system", content: systemPrompt() }, ...state.messages];
+  const ctrl = new AbortController();
+  abortRef.signal = ctrl.signal;
+
+  try {
+    const { text: answer, engine } = await runChat(wire, onDelta, abortRef);
+    state.messages.push({ role: "assistant", content: answer });
+    bubble.innerHTML = renderMd(answer);
+    bubble.parentElement.dataset.engine = engine;
+    saveHistory();
+    if (state.voiceOut) speakText(answer);
+  } catch (e) {
+    const msg = String(e?.message || e);
+    if (msg === "stopped") {
+      if (full.trim()) {
+        state.messages.push({ role: "assistant", content: full });
+        bubble.innerHTML = renderMd(full) + '\n<span class="meta">// stopped by operator</span>';
+        saveHistory();
+      } else {
+        bubble.innerHTML = '<span class="err-text">// stopped</span>';
+      }
+    } else {
+      bubble.innerHTML = `<span class="err-text">✕ ${esc(msg)}</span>` +
+        (msg.includes("puter") ? '\n<div class="hint">Tip: a Puter sign-in popup may be blocked — allow popups, or add an OpenRouter key in ⚙ SETTINGS.</div>' : "");
+      setBadge("ENGINE: ERROR", "err");
+    }
+  } finally {
+    setStreaming(false);
+    state.abort = null;
+    scrollBottom();
+  }
+}
+
+// ── Persistence ──────────────────────────────────────────────────────────────
+function saveHistory() {
+  try { localStorage.setItem(LS.history, JSON.stringify(state.messages.slice(-60))); } catch {}
+}
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem(LS.history);
+    if (!raw) return;
+    const msgs = JSON.parse(raw);
+    if (!Array.isArray(msgs)) return;
+    state.messages = msgs;
+    for (const m of msgs) {
+      if (m.role === "user") addRow("user").textContent = m.content;
+      else if (m.role === "assistant") addRow("ai").innerHTML = renderMd(m.content);
+    }
+  } catch {}
+}
+
+// ── UI wiring ────────────────────────────────────────────────────────────────
+function autosize() {
+  inputEl.style.height = "auto";
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 160) + "px";
+}
+inputEl.addEventListener("input", autosize);
+inputEl.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    send(inputEl.value);
+  }
+});
+$("composer").addEventListener("submit", (e) => { e.preventDefault(); send(inputEl.value); });
+stopBtn.addEventListener("click", () => { if (state.abort) state.abort.cancelled = true; });
+
+$("btn-clear").addEventListener("click", () => {
+  if (state.streaming) return;
+  state.messages = [];
+  logEl.innerHTML = "";
+  saveHistory();
+  inputEl.focus();
+});
+
+engineSel.addEventListener("change", () => {
+  localStorage.setItem(LS.engine, engineSel.value);
+  modelEl.value = currentModel();
+});
+modelEl.addEventListener("change", () => {
+  if (engineSel.value === "openrouter") localStorage.setItem(LS.orModel, modelEl.value.trim());
+  else localStorage.setItem(LS.puterModel, modelEl.value.trim());
+});
+
+// Settings dialog
+const dlg = $("settings");
+$("btn-settings").addEventListener("click", () => {
+  $("or-key").value = openRouterKey();
+  $("sys-prompt").value = systemPrompt();
+  dlg.showModal();
+});
+$("settings-close").addEventListener("click", () => dlg.close());
+$("settings-save").addEventListener("click", () => {
+  localStorage.setItem(LS.orKey, $("or-key").value.trim());
+  localStorage.setItem(LS.sys, $("sys-prompt").value.trim() || DEFAULT_SYSTEM);
+  dlg.close();
+});
+
+// ── Voice output (TTS) ──────────────────────────────────────────────────────
+function speakText(t) {
+  if (!("speechSynthesis" in window) || !t) return;
+  const u = new SpeechSynthesisUtterance(t.slice(0, 1200));
+  u.rate = 1.04;
+  const v = speechSynthesis.getVoices().find((x) => /en(-|_)(GB|US)/i.test(x.lang));
+  if (v) u.voice = v;
+  speechSynthesis.cancel();
+  speechSynthesis.speak(u);
+}
+
+const voiceBtn = $("btn-voice");
+function renderVoiceBtn() {
+  voiceBtn.textContent = state.voiceOut ? "🔊 VOICE: ON" : "🔊 VOICE: OFF";
+  voiceBtn.classList.toggle("ok", state.voiceOut);
+}
+voiceBtn.addEventListener("click", () => {
+  state.voiceOut = !state.voiceOut;
+  localStorage.setItem("jarvis.chat.voiceOut", state.voiceOut ? "1" : "0");
+  if (!state.voiceOut && "speechSynthesis" in window) speechSynthesis.cancel();
+  renderVoiceBtn();
+});
+renderVoiceBtn();
+
+// ── Vision attachment ────────────────────────────────────────────────────────
+const fileInput = $("file-img");
+fileInput.addEventListener("change", () => {
+  const f = fileInput.files && fileInput.files[0];
+  if (!f) return;
+  if (f.size > 4 * 1024 * 1024) {
+    setBadge("IMAGE: too large (max 4MB)", "err");
+    return;
+  }
+  const r = new FileReader();
+  r.onload = () => {
+    state.image = typeof r.result === "string" ? r.result : null;
+    renderImageChip();
+    if (state.image) setBadge("VISION: image attached", "ok");
+  };
+  r.readAsDataURL(f);
+  fileInput.value = "";
+});
+function renderImageChip() {
+  let chip = document.getElementById("img-chip");
+  if (state.image) {
+    if (!chip) {
+      chip = document.createElement("div");
+      chip.id = "img-chip";
+      chip.style.cssText = "margin:0 0 8px;display:flex;align-items:center;gap:8px;font-size:11px;color:var(--cyan-dim)";
+      document.getElementById("composer").prepend(chip);
+    }
+    chip.innerHTML =
+      `<img src="${state.image}" alt="" style="height:28px;width:28px;object-fit:cover;border-radius:4px;border:1px solid var(--line)"> ` +
+      `image attached — vision mode <button type="button" id="img-x">✕</button>`;
+    chip.querySelector("#img-x").onclick = () => {
+      state.image = null;
+      renderImageChip();
+    };
+  } else if (chip) {
+    chip.remove();
+  }
+}
+
+// ── Voice input (mic) ────────────────────────────────────────────────────────
+const micBtn = $("btn-mic");
+micBtn.addEventListener("click", () => {
+  const w = window;
+  const Ctor = w.SpeechRecognition || w.webkitSpeechRecognition;
+  if (!Ctor) {
+    setBadge("MIC: unsupported browser", "err");
+    return;
+  }
+  if (state.mic) {
+    try { state.mic.stop(); } catch {}
+    state.mic = null;
+    micBtn.textContent = "🎙";
+    return;
+  }
+  const rec = new Ctor();
+  rec.lang = "en-US";
+  rec.interimResults = false;
+  rec.onresult = (e) => {
+    const t = e.results[0][0].transcript;
+    inputEl.value = (inputEl.value ? inputEl.value + " " : "") + t;
+    autosize();
+  };
+  rec.onend = () => { state.mic = null; micBtn.textContent = "🎙"; };
+  rec.onerror = () => { state.mic = null; micBtn.textContent = "🎙"; };
+  try {
+    rec.start();
+    state.mic = rec;
+    micBtn.textContent = "🔴";
+    setBadge("MIC: listening…");
+  } catch { /* race */ }
+});
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+(function init() {
+  engineSel.value = localStorage.getItem(LS.engine) || "auto";
+  modelEl.value = currentModel();
+  loadHistory();
+  if (!state.messages.length) {
+    addRow("ai", "SYSTEM").innerHTML =
+      "SYSTEM ONLINE // JARVIS CHAT v2\n" +
+      "Engines: PUTER.JS (keyless, 500+ models) with OPENROUTER fallback.\n" +
+      "Ask me anything.";
+  }
+  inputEl.focus();
+
+  // Boot sequence fade
+  const boot = $("boot"), line = $("boot-line");
+  const steps = ["INITIALIZING PUTER.JS INTERFACE…", "LINKING AI ENGINES…", "CALIBRATING HUD…", "READY."];
+  let i = 0;
+  const tick = setInterval(() => {
+    if (++i >= steps.length) {
+      clearInterval(tick);
+      boot.classList.add("done");
+      setTimeout(() => boot.remove(), 600);
+    } else {
+      line.textContent = steps[i];
+    }
+  }, 320);
+})();
+</script>
+</body>
+</html>

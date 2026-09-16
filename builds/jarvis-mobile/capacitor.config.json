@@ -1,0 +1,12 @@
+{
+  "appId": "os.jarvis.app",
+  "appName": "JARVIS OS",
+  "webDir": "www",
+  "server": {
+    "url": "https://jarvis-os-alpha-two.vercel.app",
+    "cleartext": false
+  },
+  "android": {
+    "allowMixedContent": false
+  }
+}

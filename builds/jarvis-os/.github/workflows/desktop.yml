@@ -1,0 +1,107 @@
+name: desktop-release
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+# electron-builder needs write access to create the GitHub Release
+# that electron-updater later polls for auto-updates.
+permissions:
+  contents: write
+
+jobs:
+  mac-dmg:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec next build
+        env:
+          JARVIS_STANDALONE: "1"
+      - run: npm install --no-fund --no-audit
+        working-directory: electron
+      - name: Build DMG (arm64+x64) + zip, publish to GitHub Releases
+        run: npx electron-builder --mac dmg zip --x64 --arm64 --publish onTagOrDraft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: electron
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jarvis-os-macos
+          path: |
+            electron/dist/*.dmg
+            electron/dist/*.zip
+            electron/dist/latest-mac.yml
+
+  win-portable:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec next build
+        env:
+          JARVIS_STANDALONE: "1"
+      - run: npm install --no-fund --no-audit
+        working-directory: electron
+      - name: Build NSIS + portable, publish to GitHub Releases
+        run: npx electron-builder --win nsis portable --publish onTagOrDraft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: electron
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jarvis-os-windows
+          path: |
+            electron/dist/*.exe
+            electron/dist/latest.yml
+
+  android-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - uses: android-actions/setup-android@v3
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm install --no-fund --no-audit
+        working-directory: builds/jarvis-mobile
+      - run: npx cap sync android
+        working-directory: builds/jarvis-mobile
+      - name: Derive version from tag (vX.Y.Z → versionCode X*10000+Y*100+Z)
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          V="${GITHUB_REF_NAME#v}"
+          IFS='.' read -r MA MI PA <<< "$V"
+          CODE=$((MA * 10000 + MI * 100 + PA))
+          echo "jarvisVersionCode=$CODE"    >> android/gradle.properties
+          echo "jarvisVersionName=$V"       >> android/gradle.properties
+          echo "version: $V → versionCode $CODE"
+        working-directory: builds/jarvis-mobile
+      - run: |
+          echo "sdk.dir=$ANDROID_HOME" > android/local.properties
+          ./gradlew assembleRelease --no-daemon
+        working-directory: builds/jarvis-mobile/android
+      - name: Sign APK
+        env:
+          KS_B64: ${{ secrets.JARVIS_KEYSTORE_B64 }}
+          KS_PASS: ${{ secrets.JARVIS_KEYSTORE_PASS }}
+        run: |
+          echo "$KS_B64" | base64 -d > .keystore/jarvis.keystore
+          BUILD_TOOLS=$ANDROID_HOME/build-tools/34.0.0
+          $BUILD_TOOLS/zipalign -f -p 4 android/app/build/outputs/apk/release/app-release-unsigned.apk aligned.apk
+          $BUILD_TOOLS/apksigner sign --ks .keystore/jarvis.keystore --ks-pass pass:$KS_PASS --out "JARVIS-OS-${GITHUB_REF_NAME#v}.apk" aligned.apk
+        working-directory: builds/jarvis-mobile
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jarvis-os-android
+          path: builds/jarvis-mobile/JARVIS-OS-*.apk

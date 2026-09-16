@@ -103,6 +103,7 @@ jobs:
           KS_B64: ${{ secrets.JARVIS_KEYSTORE_B64 }}
           KS_PASS: ${{ secrets.JARVIS_KEYSTORE_PASS }}
         run: |
+          mkdir -p .keystore
           echo "$KS_B64" | base64 -d > .keystore/jarvis.keystore
           BUILD_TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
           echo "using build-tools: $BUILD_TOOLS"

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Downloads — JARVIS OS</title>
+<meta name="description" content="Get JARVIS OS: launch in browser, install as PWA, or grab the signed APK, DMG, and Windows builds of the full stack." />
+<meta property="og:title" content="JARVIS OS — Downloads" />
+<meta property="og:description" content="Run your AI OS anywhere: browser, PWA, Android, macOS, Windows, Linux." />
+<meta property="og:image" content="assets/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" type="image/png" href="assets/icon-192.png" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<div class="bg-fx"></div><div class="bg-grid"></div>
+
+<nav class="nav">
+  <a class="nav-logo" href="index.html"><span class="mark">J</span><span class="name">JARVIS<span> OS</span></span></a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="features.html">Features</a>
+    <a href="downloads.html">Downloads</a>
+    <a href="docs.html">Docs</a>
+    <a href="lore.html">Lore</a>
+    <a class="nav-cta" href="index.html" title="Launch the OS">⬢ Launch OS</a>
+  </div>
+</nav>
+
+<div class="page container">
+  <section class="hero" style="min-height:auto;padding:60px 0 20px">
+    <div class="hero-inner">
+      <span class="kicker">Get JARVIS OS</span>
+      <h1 style="font-size:clamp(32px,5vw,54px)">Run it <span class="glow-text">anywhere</span></h1>
+      <p class="hero-tagline">The browser OS is live right now. The native builds come from your main JARVIS-OS repo CI.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="grid grid-3">
+      <div class="card reveal" style="grid-column:span 1">
+        <div class="icon">⬢</div>
+        <h3>Browser (live)</h3>
+        <p>The full OS — zero install. Works on desktop and mobile browsers.</p>
+        <a class="btn btn-primary" style="margin-top:14px" href="index.html">Launch now</a>
+      </div>
+      <div class="card reveal">
+        <div class="icon">📲</div>
+        <h3>Install as app (PWA)</h3>
+        <p>In Chrome/Edge: menu → <b>Install JARVIS OS</b>. On iOS Safari: Share → Add to Home Screen. Boots offline.</p>
+        <div class="meta">NO STORE NEEDED</div>
+      </div>
+      <div class="card reveal">
+        <div class="icon">🤖</div>
+        <h3>Android APK (full stack)</h3>
+        <p>The native Capacitor shell from your main repo: <code>JARVIS-OS-v1.0.2.apk</code> (2.9 MB, signed) with Play Store AAB.</p>
+        <a class="btn btn-ghost" style="margin-top:14px" href="https://github.com/silvestargeo-hue/jarvis-os/releases" target="_blank" rel="noopener">GitHub Releases ↗</a>
+      </div>
+      <div class="card reveal">
+        <div class="icon">🍎</div>
+        <h3>macOS</h3>
+        <p>DMG + zip (arm64 &amp; Intel) with embedded Next.js server and auto-update via GitHub Releases.</p>
+        <a class="btn btn-ghost" style="margin-top:14px" href="https://github.com/silvestargeo-hue/jarvis-os/releases" target="_blank" rel="noopener">Download ↗</a>
+      </div>
+      <div class="card reveal">
+        <div class="icon">🪟</div>
+        <h3>Windows</h3>
+        <p>NSIS installer + portable zip, built by CI on every <code>v*</code> tag.</p>
+        <a class="btn btn-ghost" style="margin-top:14px" href="https://github.com/silvestargeo-hue/jarvis-os/releases" target="_blank" rel="noopener">Download ↗</a>
+      </div>
+      <div class="card reveal">
+        <div class="icon">🐧</div>
+        <h3>Linux</h3>
+        <p>AppImage (arm64 verified, 152 MB) — run anywhere without installing.</p>
+        <a class="btn btn-ghost" style="margin-top:14px" href="https://github.com/silvestargeo-hue/jarvis-os/releases" target="_blank" rel="noopener">Download ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="kicker">Checksums &amp; safety</span>
+    <h2 class="section-title">Verify before you trust</h2>
+    <p class="section-sub">Native artifacts ship with SHA256 sums in the release. Verify like this:</p>
+    <div class="terminal reveal">
+      <div class="terminal-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="title">verify — bash</span></div>
+      <div class="terminal-body"><span class="ln">$ sha256sum -c SHA256SUMS-v1.0.2.txt</span><span class="ln ok">JARVIS-OS-v1.0.2.apk: OK</span><span class="ln ok">JARVIS-OS-v1.0.2.aab: OK</span><span class="ln dim">— then sideload: allow "install unknown apps" → install</span></div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  JARVIS OS — your own AI operating system: unlimited, keyless, un-gatekept.
+  <div class="foot-links">
+    <a href="index.html">Launch OS</a><a href="features.html">Features</a><a href="downloads.html">Downloads</a><a href="docs.html">Docs</a><a href="lore.html">Lore</a>
+  </div>
+</footer>
+
+<script src="assets/main.js"></script>
+</body>
+</html>

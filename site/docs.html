@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Docs — JARVIS OS</title>
+<meta name="description" content="JARVIS OS documentation: quick start, keyboard shortcuts, terminal commands, engine stack, persistence model." />
+<meta property="og:title" content="JARVIS OS — Documentation" />
+<meta property="og:description" content="Operating manual for your AI OS: shortcuts, commands, architecture." />
+<meta property="og:image" content="assets/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" type="image/png" href="assets/icon-192.png" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+<div class="bg-fx"></div><div class="bg-grid"></div>
+
+<nav class="nav">
+  <a class="nav-logo" href="index.html"><span class="mark">J</span><span class="name">JARVIS<span> OS</span></span></a>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="features.html">Features</a>
+    <a href="downloads.html">Downloads</a>
+    <a href="docs.html">Docs</a>
+    <a href="lore.html">Lore</a>
+    <a class="nav-cta" href="index.html" title="Launch the OS">⬢ Launch OS</a>
+  </div>
+</nav>
+
+<div class="page container">
+  <section class="hero" style="min-height:auto;padding:60px 0 20px">
+    <div class="hero-inner">
+      <span class="kicker">Documentation</span>
+      <h1 style="font-size:clamp(32px,5vw,54px)">Operating <span class="glow-text">manual</span></h1>
+      <p class="hero-tagline">Everything you need to drive JARVIS OS like a pro.</p>
+    </div>
+  </section>
+
+  <section>
+    <span class="kicker">Quick start</span>
+    <h2 class="section-title">60-second tour</h2>
+    <div class="grid grid-2" style="margin-top:24px">
+      <div class="card reveal"><h3>1 · Boot &amp; unlock</h3><p>Hit <b>Launch OS</b>. Watch the boot sequence. First run sets no PIN — click <b>System</b> → <b>Set PIN</b> (or <code>pin 1234</code> in Terminal) and it will be asked on next boot.</p></div>
+      <div class="card reveal"><h3>2 · Talk to JARVIS</h3><p>Open <b>AI Chat</b> from the dock. Stream answers with no key. Try <code>/image a neon city in the rain</code> — the painting lands in the bubble, your Files, and Image Lab.</p></div>
+      <div class="card reveal"><h3>3 · See &amp; speak</h3><p>📎 attaches an image for vision. 🎙 starts voice input — your sentence is transcribed and sent. 🔊 reads the last answer aloud.</p></div>
+      <div class="card reveal"><h3>4 · Get real work done</h3><p>Notes persist forever. Tasks get AI-broken into subtasks. Files stores paintings and mic memos. Everything survives reloads — try it.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="kicker">Reference</span>
+    <h2 class="section-title">Keyboard &amp; commands</h2>
+    <div class="grid grid-2" style="margin-top:24px">
+      <div class="card reveal">
+        <h3>Global</h3>
+        <ul class="clean">
+          <li><span class="kbd">Ctrl+K</span> — command palette</li>
+          <li><span class="kbd">↑ ↓</span> / <span class="kbd">↵</span> — navigate / run in palette</li>
+          <li><span class="kbd">Esc</span> — close palette</li>
+          <li>Drag window headers to move · ▢ maximize · ✕ close</li>
+        </ul>
+      </div>
+      <div class="card reveal">
+        <h3>Terminal cheat sheet</h3>
+        <ul class="clean">
+          <li><code>ai &lt;prompt&gt;</code> — ask the keyless AI</li>
+          <li><code>img &lt;prompt&gt;</code> — paint &amp; save an image</li>
+          <li><code>wiki &lt;topic&gt;</code> · <code>fortune</code></li>
+          <li><code>note add &lt;t&gt; | &lt;body&gt;</code> · <code>notes</code></li>
+          <li><code>task add &lt;text&gt;</code> · <code>tasks</code></li>
+          <li><code>lib add &lt;t&gt; | &lt;txt&gt;</code> · <code>lib ask &lt;q&gt;</code> · <code>lib list</code> — RAG library</li>
+          <li><code>mesh join &lt;room&gt; &lt;pass&gt; [nick]</code> · <code>mesh msg &lt;t&gt;</code> — E2EE chat</li>
+          <li><code>open chat|image|terminal|notes|tasks|files|about</code></li>
+          <li><code>theme · wall · sfx · hum · wake · persona</code> — surprise toggles</li>
+          <li><code>stats · backup · vault · search &lt;q&gt; · briefing · singularity</code></li>
+          <li><code>collab on|off</code> — share terminal with mesh peers; they run <code>!cmd</code></li>
+          <li><code>pin 1234</code> · <code>lock</code> · <code>status</code> · <code>engines</code></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <span class="kicker">Under the hood</span>
+    <h2 class="section-title">Architecture</h2>
+    <div class="table-wrap reveal" style="margin-top:24px">
+      <table>
+        <thead><tr><th>Layer</th><th>Implementation</th><th>Lives in</th></tr></thead>
+        <tbody>
+          <tr><td>Kernel / WM</td><td>Boot, lock, window manager, dock, palette</td><td><code>assets/os.js</code></td></tr>
+          <tr><td>AI core</td><td>Puter.js streaming → Pollinations SSE fallback, vision, TTS, mic</td><td><code>assets/ai.js</code></td></tr>
+          <tr><td>RAG library</td><td>Chunking, TF-IDF retrieval, cited answers, PDF/txt extraction</td><td><code>assets/library.js</code></td></tr>
+          <tr><td>E2EE mesh</td><td>PBKDF2-SHA256 (150k) → AES-GCM-256; BroadcastChannel + KV relay</td><td><code>assets/mesh.js</code></td></tr>
+          <tr><td>Apps</td><td>Chat · Image Lab · Terminal · Notes · Tasks · Files · System</td><td><code>assets/apps.js</code></td></tr>
+          <tr><td>Persistence</td><td>localStorage namespaced <code>jarvis.*</code>, 60-item file store</td><td>your browser</td></tr>
+          <tr><td>Offline</td><td>Service worker (network-first nav/JS, cache-first assets)</td><td><code>sw.js</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout reveal">
+      <b>Privacy:</b> your notes, tasks, chat history, files and PIN never leave your device — they live in your browser's localStorage. AI requests go directly from your browser to the model endpoints; there is no JARVIS server in the middle.
+    </div>
+    <div class="card reveal" style="margin-top:18px">
+      <h3>🎯 Hidden surprises — try these</h3>
+      <ul class="clean">
+        <li>Type the <b>Konami code</b> on the desktop: ↑ ↑ ↓ ↓ ← → ← → B A</li>
+        <li>Say <b>"Jarvis"</b> out loud (after enabling wake word in ⌘K)</li>
+        <li>Drag a window to the <b>screen edges</b> — it snaps to halves; drag to the top to maximize</li>
+        <li>Leave the OS idle for <b>90 seconds</b> — a hyperspace screensaver engages</li>
+        <li>Open ⌘K and try <b>Vault</b>, <b>Reactor hum</b>, <b>Cycle theme</b>, <b>Daily briefing</b></li>
+        <li>Switch the AI's <b>persona</b> 🎭 in chat — poet mode answers in verse</li>
+        <li>Earn <b>25 achievements</b> 🏆 — five are secret; Code Studio builds whole apps from a sentence</li>
+      </ul>
+    </div>
+    <div style="margin-top:26px" class="reveal">
+      <a class="btn btn-primary" href="index.html">⬢ Launch JARVIS OS</a>
+    </div>
+  </section>
+</div>
+
+<footer>
+  JARVIS OS — your own AI operating system: unlimited, keyless, un-gatekept.
+  <div class="foot-links">
+    <a href="index.html">Launch OS</a><a href="features.html">Features</a><a href="downloads.html">Downloads</a><a href="docs.html">Docs</a><a href="lore.html">Lore</a>
+  </div>
+</footer>
+
+<script src="assets/main.js"></script>
+</body>
+</html>

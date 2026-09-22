@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>404 — Signal Lost | JARVIS OS</title>
+<meta name="robots" content="noindex" />
+<link rel="icon" type="image/png" href="assets/icon-192.png" />
+<link rel="stylesheet" href="assets/style.css" />
+<style>
+  .lost-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 24px; }
+  .lost-code {
+    font-family: var(--font-display); font-size: clamp(90px, 18vw, 190px); font-weight: 800;
+    letter-spacing: 8px; line-height: 1;
+    background: linear-gradient(120deg, var(--cyan-soft), var(--blue) 55%, var(--violet));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    text-shadow: 0 0 60px rgba(56,189,248,.4);
+    animation: flicker 3.2s ease-in-out infinite;
+  }
+  @keyframes flicker { 0%,100%{opacity:1} 92%{opacity:1} 93%{opacity:.4} 94%{opacity:1} 97%{opacity:.6} 98%{opacity:1} }
+  .lost-msg { font-family: var(--font-mono); color: var(--text-1); margin: 18px 0 6px; letter-spacing: 1px; }
+  .lost-hint { color: var(--text-2); font-size: 14px; margin-bottom: 30px; }
+  .scanline { position: fixed; left: 0; right: 0; height: 90px; top: -90px; z-index: 5; pointer-events: none;
+    background: linear-gradient(180deg, transparent, rgba(56,189,248,.06), transparent); animation: scan 7s linear infinite; }
+  @keyframes scan { to { transform: translateY(calc(100vh + 180px)); } }
+</style>
+</head>
+<body>
+<div class="bg-fx"></div><div class="bg-grid"></div>
+<div class="scanline"></div>
+
+<div class="lost-wrap">
+  <div>
+    <div class="lost-code">404</div>
+    <div class="lost-msg">// SIGNAL LOST — this route does not exist in the OS</div>
+    <div class="lost-hint">The page you requested was never indexed, or it drifted out of known space.</div>
+    <a class="btn btn-primary" href="index.html">⬢ Reboot to JARVIS OS</a>
+    <a class="btn btn-ghost" href="features.html">View features</a>
+  </div>
+</div>
+
+<script>
+  // playful: type the message
+  (function () {
+    var m = document.querySelector(".lost-msg");
+    var t = m.textContent; m.textContent = "";
+    var i = 0;
+    (function tick() { if (i <= t.length) { m.textContent = t.slice(0, i++); setTimeout(tick, 28); } })();
+  })();
+</script>
+</body>
+</html>

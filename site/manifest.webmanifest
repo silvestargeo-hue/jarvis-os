@@ -1,0 +1,31 @@
+{
+  "name": "JARVIS OS",
+  "short_name": "JARVIS",
+  "description": "A real AI operating system in your browser — keyless AI, vision, voice, terminal, notes, tasks, files.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#030711",
+  "theme_color": "#030711",
+  "icons": [
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "AI Chat", "url": "./index.html#chat" },
+    { "name": "Image Lab", "url": "./index.html#image" },
+    { "name": "Terminal", "url": "./index.html#terminal" }
+  ],
+  "share_target": {
+    "action": "./index.html",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}
+}

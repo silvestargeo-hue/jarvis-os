@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>JARVIS OS — Live AI Operating System</title>
+<link rel="preconnect" href="https://js.puter.com" />
+<link rel="preconnect" href="https://text.pollinations.ai" />
+<link rel="dns-prefetch" href="https://image.pollinations.ai" />
+<meta name="description" content="A real AI operating system that runs in your browser. Keyless unlimited AI, voice, vision, image generation, terminal, notes, tasks — offline-capable PWA." />
+<meta property="og:title" content="JARVIS OS — Your AI Operating System" />
+<meta property="og:description" content="11 apps. 25 achievements. Keyless AI. Zero install. Live in your browser." />
+<meta property="og:image" content="assets/og-image.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="theme-color" content="#030711" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png" />
+<link rel="apple-touch-icon" href="assets/icon-192.png" />
+<link rel="stylesheet" href="assets/style.css" />
+<script src="https://js.puter.com/v2/" defer></script>
+</head>
+<body class="os-page">
+
+<!-- ===== BOOT SEQUENCE ===== -->
+<div id="boot-screen" aria-hidden="true">
+  <div class="boot-center">
+    <div class="boot-ring"></div>
+    <pre id="boot-log" class="boot-log"></pre>
+    <div class="boot-bar-wrap"><div id="boot-bar"></div></div>
+  </div>
+</div>
+
+<!-- ===== LOCK SCREEN ===== -->
+<div id="lock" hidden>
+  <div class="lock-card">
+    <div class="lock-avatar">J</div>
+    <div class="lock-name">Operator</div>
+    <div class="lock-sub">JARVIS OS · Secure Session</div>
+    <input id="lock-pin" type="password" inputmode="numeric" maxlength="8" placeholder="PIN (default 0000)" autocomplete="off" />
+    <div id="lock-err" class="lock-err"></div>
+    <button id="lock-btn" class="btn btn-primary">Unlock</button>
+    <div class="lock-hint">First time? Any PIN you set becomes your PIN.</div>
+  </div>
+</div>
+
+<!-- ===== DESKTOP ===== -->
+<div id="desktop" hidden>
+  <canvas id="starfield"></canvas>
+
+  <header class="topbar">
+    <div class="tb-left">
+      <span class="tb-logo">JARVIS <b>OS</b></span>
+      <span id="tb-engine" class="tb-chip">AI: —</span>
+      <span id="tb-net" class="tb-chip">● ONLINE</span>
+    </div>
+    <div class="tb-clock" id="tb-clock">--:--:--</div>
+    <div class="tb-right">
+      <button id="btn-palette" class="tb-btn" title="Command palette (Ctrl+K)">⌘ Search</button>
+      <button id="btn-lock" class="tb-btn" title="Lock">🔒</button>
+    </div>
+  </header>
+
+  <main class="desk-area">
+    <div class="desk-hello" id="desk-hello">
+      <h1><span class="glow-text">JARVIS</span> OS</h1>
+      <p>Your own AI operating system — unlimited, keyless, un-gatekept. Live in your browser.</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary" data-launch="chat">▲ Open AI Chat</button>
+        <button class="btn btn-ghost" id="hello-voice" data-speak="Welcome back, operator. All systems are online.">🎙 Greet me</button>
+      </div>
+    </div>
+    <div id="windows"></div>
+  </main>
+
+  <!-- Dock -->
+  <nav class="dock" id="dock" aria-label="App dock"></nav>
+
+  <!-- Command palette -->
+  <div id="palette" hidden>
+    <div class="palette-card">
+      <input id="palette-input" placeholder="Type a command… (open app, create note, wall, lock, help)" autocomplete="off" />
+      <div id="palette-list" class="palette-list"></div>
+      <div class="palette-foot">↑↓ navigate · ↵ run · esc close</div>
+    </div>
+  </div>
+
+  <div id="toasts"></div>
+</div>
+
+<script src="assets/i18n.js" defer></script>
+<script src="assets/os.js" defer></script>
+<script src="assets/state.js" defer></script>
+<script src="assets/ai.js" defer></script>
+<script src="assets/library.js" defer></script>
+<script src="assets/mesh.js" defer></script>
+<script src="assets/apps.js" defer></script>
+<script src="assets/surprises.js" defer></script>
+<script src="assets/surprises2.js" defer></script>
+<script src="assets/voice.js" defer></script>
+<script src="assets/settings.js" defer></script>
+<script src="assets/marketplace.js" defer></script>
+<script src="assets/help.js" defer></script>
+<script src="assets/achievements.js" defer></script>
+<script src="assets/code.js" defer></script>
+<script src="assets/tour.js" defer></script>
+<script src="assets/boot.js" defer></script>
+</body>
+</html>
